@@ -1,13 +1,34 @@
 package main
 
 import (
+    "bytes"
     "fmt"
-    "os"
     "math/rand"
+    "os"
     "time"
     "github.com/rockneurotiko/go-tgbot"
     "github.com/joho/godotenv"
 )
+
+var avaliableCommands = map[string]string{
+    "/start": "Go! Go! Go!",
+    "/help":  "HALP!",
+}
+
+func helpHandler(bot tgbot.TgBot, msg tgbot.Message, text string) *string {
+    var buffer bytes.Buffer
+    var str string
+
+    for cmd, helptext := range avaliableCommands {
+        str = fmt.Sprintf("%s - %s\n", cmd, helptext)
+        buffer.WriteString(str)
+    }
+
+
+    bot.Answer(msg).Text(buffer.String()).End()
+
+    return nil
+}
 
 func echoHandler(bot tgbot.TgBot, msg tgbot.Message, vals []string, kvals map[string]string) *string {
     newmsg := fmt.Sprintf("[Echoed]: %s", vals[1])
@@ -48,6 +69,8 @@ func main() {
     token := os.Getenv("TELEGRAM_KEY")
 
     bot := tgbot.NewTgBot(token)
+
+    bot.SimpleCommandFn(`^/help`, helpHandler)
 
     bot.CommandFn(`echo (.+)`, echoHandler)
 
